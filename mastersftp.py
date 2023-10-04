@@ -18,10 +18,7 @@ RM_ALLOC_DB = RM_ALLOC_DB_URL+"/QP_DW_RMALLOC"
 conn = create_engine(RM_ALLOC_DB)
 
 # Specify the runid you want to select
-target_runid = '98119c3c-c965-4dbf-a974-9195524e60ee'
 
-# Fetch data from the database for the specified runid
-data = conn.execute(f"SELECT result FROM navitaire_allocation_audit WHERE run_id = '{target_runid}'")
 
 def pad_rbd_value(rbd_value):
     return f"{rbd_value:04}"
@@ -61,20 +58,28 @@ def upload_to_sftp(sftp_host, sftp_port, sftp_username, sftp_password, remote_di
 
 # AWS Lambda Handler Function
 def lambda_handler(event, context):
-    # SFTP server configuration
-      # Modify this to your SFTP directory
-
+    records = event['Records']
+    for record in records:
+        content = record['body']
+        data = json.loads(content)
+        runid=data["run_id"]
+# Fetch data from the database for the specified runid
+        data = conn.execute(f"SELECT result FROM navitaire_allocation_audit WHERE run_id = '{runid}'")
     # Generate and write data to the AUUPDATE file
-    file_name = "/tmp/AUUPDATE"  # Use Lambda's /tmp directory
-    with open(file_name, 'w') as file:
-        for row in data:
-            runid, departurdate, flightno1, sector1, flightno2, sector2 = "fefe", "07-09-2023", "1102", "BOMHYD", "2365", "HYDDEL"
-            rbds = json.loads(row[0])
-            file_content = generate_file_content(runid, departurdate, flightno1, sector1, flightno2, sector2, rbds)
-            file.write(file_content)
+        file_name = "/tmp/AUUPDATE"  # Use Lambda's /tmp directory
+        with open(file_name, 'w') as file:
+            for row in data:
+                runid, departurdate, flightno1, sector1, flightno2, sector2 = runid, "07-09-2023", "1102", "BOMHYD", "2365", "HYDDEL"
+                rbds = json.loads(row[0])
+                file_content = generate_file_content(runid, departurdate, flightno1, sector1, flightno2, sector2, rbds)
+                file.write(file_content)
 
-    # Periodically check if the remote file exists (every 15 seconds)
-    divide_file(file_name)
+        # Periodically check if the remote file exists (every 15 seconds)
+        divide_file(file_name)
+    return {
+        'statusCode': 200,
+        'body': 'success'
+    }
 
     # This code will run indefinitely, checking for the file every 15 seconds.
 def upload_to_sftp(local_file):
