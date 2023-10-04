@@ -125,7 +125,8 @@ class DataProcessor:
         if timeout == self.timeout:
             logger.info("Time limit exceeded 15 minutes")
             
-    def create_chunks(self,audatframe):
+    def create_chunks(self):
+        data=self.createfile()
         data = audatframe.to_csv(index=False, encoding='utf-8')
             
         if data is None:
@@ -193,12 +194,14 @@ class DataProcessor:
     # Write data to a file without extension
     def createfile(self):
         file_name = "AUUPDATE"
+        temp_dir = '/tmp'  # Lambda's writable directory for temporary files
+        temp_filename = os.path.join(temp_dir, file_name)
         data = conn.execute(f"SELECT result FROM navitaire_allocation_audit WHERE run_id = '98119c3c-c965-4dbf-a974-9195524e60ee'")
 
-        with open(file_name, 'w') as file:
+        with open(temp_filename, 'w') as file:
             for row in data:
                 runid, departurdate, flightno1, sector1,flightno2,sector2 = "fefe","07-09-2023","1102","BOMHYD","2365","HYDDEL"
                 rbds=json.loads(row[0])
                 file_content = self.generate_file_content(runid, departurdate, flightno1,sector1,flightno2, sector2,rbds)
                 file.write(file_content)
-
+        return temp_filename
