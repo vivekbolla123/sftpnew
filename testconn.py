@@ -28,23 +28,24 @@ def format_date(date_string):
 def generate_file_content(runid, departurdate, flightno1,sector1,flightno2, sector2, rbds):
     file_content = ""
     for rbd_value in rbds:
-        rbd, rbd_value = rbd_value,pad_rbd_value(int(rbds[rbd_value]))
-        final_date=format_date(departurdate)
-        line = f"{final_date} QP   {flightno1} {sector1} QP   {flightno2} {sector2}{' ' * (24 - len(sector2))}"
-        line += f"C {rbd}{' ' * (9 - len(rbd))}{rbd_value} {rbd_value}\n"
-        file_content += line
-    return file_content
+        if int(rbds[rbd_value])>0:
+            rbd, rbd_value = rbd_value,pad_rbd_value(int(rbds[rbd_value]))
+            final_date=format_date(departurdate)
+            line = f"{final_date} QP   {flightno1} {sector1} QP   {flightno2} {sector2}{' ' * (24 - len(sector2))}"
+            line += f"C {rbd}{' ' * (9 - len(rbd))}{rbd_value} {rbd_value}\n"
+            file_content += line
+    return file_content       
+        
 
 # Write data to a file without extension
-def createfile():
-    file_name = "AUUPDATE"
 
+file_name = "AUUPDATE"
 
-    with open(file_name, 'w') as file:
-        for row in data:
-            runid, departurdate, flightno1, sector1,flightno2,sector2 = "fefe","07-09-2023","1102","BOMHYD","2365","HYDDEL"
-            rbds=json.loads(row[0])
-            file_content = generate_file_content(runid, departurdate, flightno1,sector1,flightno2, sector2,rbds)
-            file.write(file_content)
-        
+with open(file_name, 'w') as file:
+    for row in data:
+        runid, departurdate, flightno1, sector1,flightno2,sector2 = "fefe","07-09-2023","1102","BOMHYD","2365","HYDDEL"
+        rbds=json.loads(row[0])
+        file_content = generate_file_content(runid, departurdate, flightno1,sector1,flightno2, sector2,rbds)
+        file.write(file_content)
+    
 
