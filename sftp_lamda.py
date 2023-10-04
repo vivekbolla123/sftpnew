@@ -125,8 +125,7 @@ class DataProcessor:
         if timeout == self.timeout:
             logger.info("Time limit exceeded 15 minutes")
             
-    def create_chunks(self):
-        data=self.createfile()
+    def create_chunks(self,dataframe):
         data = audatframe.to_csv(index=False, encoding='utf-8')
             
         if data is None:
